@@ -1,13 +1,17 @@
 package com.techboot.projects.airBnbApp.entity;
 
+import com.techboot.projects.airBnbApp.entity.enums.Role;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Set;
+
 @Entity
 @Getter
 @Setter
-public class User {
+public class Users {
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
@@ -20,9 +24,7 @@ public class User {
 
     private String name;
 
-
-
-
-
-
+    @ElementCollection(fetch = FetchType.EAGER)
+    @Enumerated(EnumType.STRING)
+    private Set<Role> roles;
 }
