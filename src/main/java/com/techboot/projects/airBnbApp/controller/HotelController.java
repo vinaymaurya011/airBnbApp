@@ -40,7 +40,7 @@ public class HotelController {
 
     @DeleteMapping("/{hotelId}")
     public ResponseEntity<Void> deleteHotelById(@PathVariable Long hotelId){
-        hotelService.getHotelById(hotelId);
+        hotelService.deleteHotelById(hotelId);
         return ResponseEntity.noContent().build();
     }
 
