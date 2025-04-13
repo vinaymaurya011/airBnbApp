@@ -64,7 +64,7 @@ public class RoomServiceImpl implements RoomService {
     }
 
     @Override
-    public void deleteHotelById(Long roomId) {
+    public void deleteRoomById(Long roomId) {
         log.info("Deleting room with Id : {}", roomId);
         boolean exists = roomRepository.existsById(roomId);
         if(!exists){
