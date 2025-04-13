@@ -66,6 +66,17 @@ public class HotelServiceImpl  implements  HotelService{
         return true;
     }
 
+    @Override
+    public void activateHotel(Long hotelId) {
+        log.info("Activating hotel with id : {}", hotelId);
+        Hotel hotel = hotelRepository
+                .findById(hotelId)
+                .orElseThrow(() -> new ResourceNotFoundException("Hotel not found with id : "+hotelId));
+
+        hotel.setActive(true);
+        hotelRepository.save(hotel);
+
+    }
 
 
 }
