@@ -1,6 +1,7 @@
 package com.techboot.projects.airBnbApp.controller;
 
 import com.techboot.projects.airBnbApp.dto.HotelDto;
+import com.techboot.projects.airBnbApp.entity.Hotel;
 import com.techboot.projects.airBnbApp.service.HotelService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +20,7 @@ public class HotelController {
     @PostMapping
     public ResponseEntity<HotelDto> createNewHotel(@RequestBody HotelDto hotelDto){
         log.info("Attempting to create a new hotel with name : {}", hotelDto.getName());
-
+        log.info("Hotel Dto : " + hotelDto);
         HotelDto hotel = hotelService.createNewHotel(hotelDto);
         return new ResponseEntity<>(hotel, HttpStatus.CREATED);
     }
@@ -28,6 +29,19 @@ public class HotelController {
     public ResponseEntity<HotelDto> getHotelById(@PathVariable Long hotelId){
         HotelDto hotelDto = hotelService.getHotelById(hotelId);
         return ResponseEntity.ok(hotelDto);
+    }
+
+    @PutMapping("/{hotelId}")
+    public ResponseEntity<HotelDto> updateHotelById(@PathVariable Long hotelId, @RequestBody HotelDto hotelDto){
+        HotelDto hotel = hotelService.updateHotelById(hotelId, hotelDto);
+
+        return ResponseEntity.ok(hotel);
+    }
+
+    @DeleteMapping("/{hotelId}")
+    public ResponseEntity<Void> deleteHotelById(@PathVariable Long hotelId){
+        hotelService.getHotelById(hotelId);
+        return ResponseEntity.noContent().build();
     }
 
 }
