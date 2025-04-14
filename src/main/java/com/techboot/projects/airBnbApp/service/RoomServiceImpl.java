@@ -22,6 +22,7 @@ public class RoomServiceImpl implements RoomService {
     private final ModelMapper modelMapper;
     private final RoomRepository roomRepository;
     private final HotelRepository hotelRepository;
+    private final InventoryService inventoryService;
 
     @Override
     public RoomDto createNewRoom(Long hotelId, RoomDto roomDto) {
@@ -34,7 +35,11 @@ public class RoomServiceImpl implements RoomService {
         room.setHotel(hotel);
         room = roomRepository.save(room);
 
-//        Create inventory as soon as room is created and if hotel is active
+//      Creating inventory as soon as room is created and if hotel is active
+
+        if(hotel.getActive()){
+            inventoryService.initializeRoomForAYear(room);
+        }
 
         return modelMapper.map(room, RoomDto.class);
 
