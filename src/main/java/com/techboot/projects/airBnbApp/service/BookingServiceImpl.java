@@ -2,6 +2,7 @@ package com.techboot.projects.airBnbApp.service;
 
 import com.techboot.projects.airBnbApp.dto.BookingDto;
 import com.techboot.projects.airBnbApp.dto.BookingRequest;
+import com.techboot.projects.airBnbApp.dto.GuestDto;
 import com.techboot.projects.airBnbApp.entity.*;
 import com.techboot.projects.airBnbApp.entity.enums.BookingStatus;
 import com.techboot.projects.airBnbApp.exception.ResourceNotFoundException;
@@ -16,6 +17,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
@@ -23,6 +25,7 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 public class BookingServiceImpl implements BookingService{
+    private final GuestRepository guestRepository;
 
     private final HotelRepository hotelRepository;
     private final BookingRepository bookingRepository;
@@ -64,9 +67,6 @@ public class BookingServiceImpl implements BookingService{
 
 //        ceate the booking
 
-        Users user = new Users();
-        user.setId(1L);
-
         // TODO : Calculate dynamic amount
 
         Booking booking = Booking.builder()
@@ -75,12 +75,50 @@ public class BookingServiceImpl implements BookingService{
                 .room(room)
                 .checkInDate(bookingRequest.getCheckInDate())
                 .checkOutDate(bookingRequest.getCheckOutDate())
-                .user(user)
+                .user(getCurrentUser())
                 .roomsCount(bookingRequest.getRoomsCount())
                 .amount(BigDecimal.TEN)
                 .build();
 
         booking = bookingRepository.save(booking);
         return modelMapper.map(booking, BookingDto.class);
+    }
+
+    @Override
+    public BookingDto addGuests(Long bookingId, List<GuestDto> guestDtoList) {
+        log.info("Adding guests for booking with id : {}", bookingId);
+
+
+        Booking booking = bookingRepository
+                .findById(bookingId)
+                .orElseThrow(() -> new ResourceNotFoundException("booking not found with id : " + bookingId));
+
+        if(hasBookingExpired(booking)){
+            throw new IllegalStateException("Booking has already expired.");
+        }
+
+        if(booking.getBookingStatus() != BookingStatus.RESERVED){
+            throw new IllegalStateException("Booking is not under reserved state, cannot add guests.");
+        }
+
+        for(GuestDto guestDto : guestDtoList){
+            Guest guest = modelMapper.map(guestDto, Guest.class);
+            guest.setUser(getCurrentUser());
+            guest = guestRepository.save(guest);
+            booking.getGuests().add(guest);
+        }
+        booking.setBookingStatus(BookingStatus.GUESTS_ADDED);
+        booking = bookingRepository.save(booking);
+        return modelMapper.map(booking, BookingDto.class);
+    }
+
+    public boolean hasBookingExpired(Booking booking){
+        return booking.getCreatedAt().plusMinutes(10).isBefore(LocalDateTime.now());
+    }
+
+    public Users getCurrentUser(){
+        Users user = new Users();
+        user.setId(1L);
+        return user;
     }
 }
