@@ -2,6 +2,7 @@ package com.techboot.projects.airBnbApp.service;
 
 import com.techboot.projects.airBnbApp.dto.HotelDto;
 import com.techboot.projects.airBnbApp.dto.HotelSearchRequest;
+import com.techboot.projects.airBnbApp.entity.Hotel;
 import com.techboot.projects.airBnbApp.entity.Inventory;
 import com.techboot.projects.airBnbApp.entity.Room;
 import com.techboot.projects.airBnbApp.repository.InventoryRepository;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 
 @Service
 @Slf4j
@@ -55,5 +57,18 @@ public class InventoryServiceImpl implements InventoryService{
     @Override
     public Page<HotelDto> seachHotels(HotelSearchRequest hotelSearchRequest) {
         Pageable pageable = PageRequest.of(hotelSearchRequest.getPage(), hotelSearchRequest.getSize());
+        long dateCount = ChronoUnit.DAYS.between(hotelSearchRequest.getStartDate(), hotelSearchRequest.getEndDate())+1;
+
+         Page<Hotel> hotelPage = inventoryRepository.findHotelWithAvailableInventory(hotelSearchRequest.getCity(),
+                hotelSearchRequest.getStartDate(),
+                hotelSearchRequest.getEndDate(),
+                hotelSearchRequest.getRoomsCount(),
+                dateCount,
+                pageable
+        );
+
+         return hotelPage.map((element) -> modelMapper.map(element, HotelDto.class));
     }
+
+
 }
