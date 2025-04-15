@@ -2,8 +2,11 @@ package com.techboot.projects.airBnbApp.service;
 
 import com.techboot.projects.airBnbApp.dto.HotelDto;
 import com.techboot.projects.airBnbApp.entity.Hotel;
+import com.techboot.projects.airBnbApp.entity.Room;
 import com.techboot.projects.airBnbApp.exception.ResourceNotFoundException;
 import com.techboot.projects.airBnbApp.repository.HotelRepository;
+import com.techboot.projects.airBnbApp.repository.RoomRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -16,6 +19,8 @@ public class HotelServiceImpl  implements  HotelService{
 
     private final HotelRepository hotelRepository;
     private final ModelMapper modelMapper;
+    private final InventoryService inventoryService;
+    private final RoomRepository roomRepository;
 
     @Override
     public HotelDto createNewHotel(HotelDto hotelDto) {
@@ -55,18 +60,24 @@ public class HotelServiceImpl  implements  HotelService{
     }
 
     @Override
-    public Boolean deleteHotelById(Long id) {
-        boolean exists = hotelRepository.existsById(id);
+    @Transactional
+    public void deleteHotelById(Long id) {
+        Hotel hotel = hotelRepository
+                .findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Hotel not found with id : "+id));
 
-        if(!exists) throw new ResourceNotFoundException("Hotel not found with id : "+id);
 
-        hotelRepository.deleteById(id);
+
         //delete the future inventories for this hotel
-
-        return true;
+        for(Room room : hotel.getRooms()){
+            inventoryService.deleteAllInventories(room);
+            roomRepository.deleteById(room.getId());
+        }
+        hotelRepository.deleteById(id);
     }
 
     @Override
+    @Transactional
     public void activateHotel(Long hotelId) {
         log.info("Activating hotel with id : {}", hotelId);
         Hotel hotel = hotelRepository
@@ -74,8 +85,10 @@ public class HotelServiceImpl  implements  HotelService{
                 .orElseThrow(() -> new ResourceNotFoundException("Hotel not found with id : "+hotelId));
 
         hotel.setActive(true);
-        hotelRepository.save(hotel);
 
+        for(Room room : hotel.getRooms()){
+            inventoryService.initializeRoomForAYear(room);
+        }
     }
 
 

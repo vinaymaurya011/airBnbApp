@@ -1,11 +1,16 @@
 package com.techboot.projects.airBnbApp.service;
 
+import com.techboot.projects.airBnbApp.dto.HotelDto;
+import com.techboot.projects.airBnbApp.dto.HotelSearchRequest;
 import com.techboot.projects.airBnbApp.entity.Inventory;
 import com.techboot.projects.airBnbApp.entity.Room;
 import com.techboot.projects.airBnbApp.repository.InventoryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -21,10 +26,10 @@ public class InventoryServiceImpl implements InventoryService{
 
 
     @Override
-    public void initializeRoomForAYear(Room room) {
+    public void  initializeRoomForAYear(Room room) {
         LocalDate today = LocalDate.now();
         LocalDate endDate = today.plusYears(1);
-        for(; !today.isAfter(endDate); today.plusDays(1)){
+        for(; !today.isAfter(endDate); today=today.plusDays(1)){
             Inventory inventory = Inventory.builder()
                     .hotel(room.getHotel())
                     .room(room)
@@ -39,5 +44,16 @@ public class InventoryServiceImpl implements InventoryService{
 
             inventoryRepository.save(inventory);
         }
+    }
+
+    @Override
+    public void deleteAllInventories(Room room) {
+        LocalDate today = LocalDate.now();
+        inventoryRepository.deleteByRoom(room);
+    }
+
+    @Override
+    public Page<HotelDto> seachHotels(HotelSearchRequest hotelSearchRequest) {
+        Pageable pageable = PageRequest.of(hotelSearchRequest.getPage(), hotelSearchRequest.getSize());
     }
 }
