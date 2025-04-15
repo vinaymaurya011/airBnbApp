@@ -4,11 +4,13 @@ import com.techboot.projects.airBnbApp.entity.Hotel;
 import com.techboot.projects.airBnbApp.entity.Room;
 import com.techboot.projects.airBnbApp.entity.Users;
 import com.techboot.projects.airBnbApp.entity.enums.BookingStatus;
+import lombok.Data;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Set;
 
+@Data
 public class BookingDto {
     private Long id;
     private Hotel hotel;
